@@ -1,0 +1,29 @@
+From: Michael Reichert <osm-ml@michreichert.de>
+Date: Sun, 26 Jan 2020 11:47:36 +0100
+Subject: Fix usage of send_rejection(): Call it with original message
+
+See upstream ticket
+https://gitlab.com/mailman/mailman/issues/672
+---
+ src/mailman/app/moderator.py | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/src/mailman/app/moderator.py b/src/mailman/app/moderator.py
+index 131f7d4..15d03c2 100644
+--- a/src/mailman/app/moderator.py
++++ b/src/mailman/app/moderator.py
+@@ -114,9 +114,10 @@ def handle_message(mlist, id, action, comment=None, forward=None):
+             language = member.preferred_language
+         else:
+             language = None
++        msg = message_store.get_message_by_id(message_id)
+         send_rejection(
+             mlist, _('Posting of your message titled "$subject"'),
+-            sender, comment or _('[No reason given]'), language)
++            sender, comment or _('[No reason given]'), msg, language)
+     elif action is Action.accept:
+         # Start by getting the message from the message store.
+         msg = message_store.get_message_by_id(message_id)
+-- 
+2.20.1
+

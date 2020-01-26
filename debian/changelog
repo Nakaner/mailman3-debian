@@ -1,3 +1,16 @@
+mailman3 (3.2.1-2) unstable; urgency=medium
+
+  * d/p/0003-decode-message-subject.patch:
+    - Decode subject of a message before using it in templates when composing
+      rejection notifications for users.
+  * d/p/0004-call-send_rejection-correctly.patch:
+    - Fix usage of send_rejection() in order to include original message
+  * d/p/0005-use-utf-8.patch
+    - Change default output encoding to utf-8 for all languages, send user
+      notifications in quoted-printable. 
+
+ -- Michael Reichert <osm-ml@michreichert.de>  Sun, 26 Jan 2020 12:18:00 +0100
+
 mailman3 (3.2.1-1) unstable; urgency=medium
 
   * New upstream release 3.2.1

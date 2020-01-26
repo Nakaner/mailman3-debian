@@ -1,2 +1,5 @@
 0001_README_remove_embedded_images.patch
 0002-remove_importlib_resources_dependency.patch
+0003-decode-message-subject.patch
+0004-call-send_rejection-correctly.patch
+0005-use-utf-8.patch

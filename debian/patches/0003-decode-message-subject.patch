@@ -1,0 +1,37 @@
+From: Michael Reichert <osm-ml@michreichert.de>
+Date: Sun, 26 Jan 2020 11:45:36 +0100
+Subject: Decode subject of a message before using it in templates
+ when composing rejection notifications for users.
+
+See upstream ticket
+https://gitlab.com/mailman/mailman/issues/672
+---
+ src/mailman/app/moderator.py | 5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/src/mailman/app/moderator.py b/src/mailman/app/moderator.py
+index 340301f..131f7d4 100644
+--- a/src/mailman/app/moderator.py
++++ b/src/mailman/app/moderator.py
+@@ -32,7 +32,7 @@ from mailman.interfaces.messages import IMessageStore
+ from mailman.interfaces.requests import IListRequests, RequestType
+ from mailman.interfaces.template import ITemplateLoader
+ from mailman.utilities.datetime import now
+-from mailman.utilities.string import expand, wrap
++from mailman.utilities.string import expand, oneline, wrap
+ from public import public
+ from zope.component import getUtility
+ 
+@@ -99,7 +99,8 @@ def handle_message(mlist, id, action, comment=None, forward=None):
+     rejection = None
+     message_id = msgdata['_mod_message_id']
+     sender = msgdata['_mod_sender']
+-    subject = msgdata['_mod_subject']
++    # Subject is stored encoded in the database as we received it, decode it before use.
++    subject = oneline(msgdata['_mod_subject'], in_unicode=True)
+     keep = False
+     if action in (Action.defer, Action.hold):
+         # Nothing to do, but preserve the message for later.
+-- 
+2.20.1
+

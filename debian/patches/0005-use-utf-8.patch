@@ -1,0 +1,235 @@
+From: Michael Reichert <osm-ml@michreichert.de>
+Date: Sun, 26 Jan 2020 11:57:32 +0100
+Subject: Change default encoding to utf-8, UserNotifications to quo-pri
+
+Any message can contain characters requiring UTF-8, therefore this is a
+sane default. Change UserNotification to quoted-printable for users who
+see the greppability of their mailboxes as an important feature.
+
+See upstream ticket
+https://gitlab.com/mailman/mailman/issues/673
+---
+ src/mailman/config/schema.cfg | 54 +++++++++++++++++------------------
+ src/mailman/email/message.py  |  9 ++++--
+ 2 files changed, 34 insertions(+), 29 deletions(-)
+
+diff --git a/src/mailman/config/schema.cfg b/src/mailman/config/schema.cfg
+index ab6fd47..b1c5bef 100644
+--- a/src/mailman/config/schema.cfg
++++ b/src/mailman/config/schema.cfg
+@@ -402,7 +402,7 @@ admin_pass: restpass
+ # The English name for the language.
+ description: English (USA)
+ # And the default character set for the language.
+-charset: us-ascii
++charset: utf-8
+ # Whether the language is enabled or not.
+ enabled: yes
+ 
+@@ -415,7 +415,7 @@ enabled: yes
+ 
+ [language.ast]
+ description: Asturian
+-charset: iso-8859-1
++charset: utf-8
+ enabled: yes
+ 
+ [language.ca]
+@@ -425,12 +425,12 @@ enabled: yes
+ 
+ [language.cs]
+ description: Czech
+-charset: iso-8859-2
++charset: utf-8
+ enabled: yes
+ 
+ [language.da]
+ description: Danish
+-charset: iso-8859-1
++charset: utf-8
+ enabled: yes
+ 
+ [language.de]
+@@ -440,33 +440,33 @@ enabled: yes
+ 
+ [language.el]
+ description: Greek
+-charset: iso-8859-7
++charset: utf-8
+ enabled: yes
+ 
+ [language.es]
+ description: Spanish
+-charset: iso-8859-1
++charset: utf-8
+ enabled: yes
+ 
+ [language.et]
+ description: Estonian
+-charset: iso-8859-15
++charset: utf-8
+ enabled: yes
+ 
+ [language.eu]
+ # Basque
+ description: Euskara
+-charset: iso-8859-15
++charset: utf-8
+ enabled: yes
+ 
+ [language.fi]
+ description: Finnish
+-charset: iso-8859-1
++charset: utf-8
+ enabled: yes
+ 
+ [language.fr]
+ description: French
+-charset: iso-8859-1
++charset: utf-8
+ enabled: yes
+ 
+ [language.gl]
+@@ -481,72 +481,72 @@ enabled: yes
+ 
+ [language.hr]
+ description: Croatian
+-charset: iso-8859-2
++charset: utf-8
+ enabled: yes
+ 
+ [language.hu]
+ description: Hungarian
+-charset: iso-8859-2
++charset: utf-8
+ enabled: yes
+ 
+ [language.ia]
+ description: Interlingua
+-charset: iso-8859-15
++charset: utf-8
+ enabled: yes
+ 
+ [language.it]
+ description: Italian
+-charset: iso-8859-1
++charset: utf-8
+ enabled: yes
+ 
+ [language.ja]
+ description: Japanese
+-charset: euc-jp
++charset: utf-8
+ enabled: yes
+ 
+ [language.ko]
+ description: Korean
+-charset: euc-kr
++charset: utf-8
+ enabled: yes
+ 
+ [language.lt]
+ description: Lithuanian
+-charset: iso-8859-13
++charset: utf-8
+ enabled: yes
+ 
+ [language.nl]
+ description: Dutch
+-charset: iso-8859-1
++charset: utf-8
+ enabled: yes
+ 
+ [language.no]
+ description: Norwegian
+-charset: iso-8859-1
++charset: utf-8
+ enabled: yes
+ 
+ [language.pl]
+ description: Polish
+-charset: iso-8859-2
++charset: utf-8
+ enabled: yes
+ 
+ [language.pt]
+ description: Protuguese
+-charset: iso-8859-1
++charset: utf-8
+ enabled: yes
+ 
+ [language.pt_BR]
+ description: Protuguese (Brazil)
+-charset: iso-8859-1
++charset: utf-8
+ enabled: yes
+ 
+ [language.ro]
+ description: Romanian
+-charset: iso-8859-2
++charset: utf-8
+ enabled: yes
+ 
+ [language.ru]
+ description: Russian
+-charset: koi8-r
++charset: utf-8
+ enabled: yes
+ 
+ [language.sk]
+@@ -556,7 +556,7 @@ enabled: yes
+ 
+ [language.sl]
+ description: Slovenian
+-charset: iso-8859-2
++charset: utf-8
+ enabled: yes
+ 
+ [language.sr]
+@@ -566,12 +566,12 @@ enabled: yes
+ 
+ [language.sv]
+ description: Swedish
+-charset: iso-8859-1
++charset: utf-8
+ enabled: yes
+ 
+ [language.tr]
+ description: Turkish
+-charset: iso-8859-9
++charset: utf-8
+ enabled: yes
+ 
+ [language.uk]
+diff --git a/src/mailman/email/message.py b/src/mailman/email/message.py
+index 7a87f69..2ddb181 100644
+--- a/src/mailman/email/message.py
++++ b/src/mailman/email/message.py
+@@ -27,6 +27,7 @@ import email
+ import email.message
+ import email.utils
+ 
++from email.charset import Charset, SHORTEST, QP
+ from email.header import Header
+ from email.mime.multipart import MIMEMultipart
+ from mailman.config import config
+@@ -134,10 +135,14 @@ class UserNotification(Message):
+ 
+     def __init__(self, recipients, sender, subject=None, text=None, lang=None):
+         Message.__init__(self)
+-        charset = (lang.charset if lang is not None else 'us-ascii')
++        cs = (lang.charset if lang is not None else 'utf-8')
++        charset = Charset(cs)
++        charset.header_encoding = SHORTEST
++        # Body encoding cannot be the shortest of quoted-printable or base64.
++        charset.body_encoding = QP
+         subject = ('(no subject)' if subject is None else subject)
+         if text is not None:
+-            self.set_payload(text.encode(charset, errors='replace'), charset)
++            self.set_payload(text.encode(charset.input_charset, errors='replace'), charset)
+         self['Subject'] = Header(
+             subject, charset, header_name='Subject', errors='replace')
+         self['From'] = sender
+-- 
+2.20.1
+
