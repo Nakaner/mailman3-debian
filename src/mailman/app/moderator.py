@@ -114,9 +114,10 @@ def handle_message(mlist, id, action, comment=None, forward=None):
             language = member.preferred_language
         else:
             language = None
+        msg = message_store.get_message_by_id(message_id)
         send_rejection(
             mlist, _('Posting of your message titled "$subject"'),
-            sender, comment or _('[No reason given]'), language)
+            sender, comment or _('[No reason given]'), msg, language)
     elif action is Action.accept:
         # Start by getting the message from the message store.
         msg = message_store.get_message_by_id(message_id)
