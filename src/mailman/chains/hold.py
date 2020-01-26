@@ -19,6 +19,7 @@
 
 import logging
 
+from email.charset import Charset, QP, SHORTEST
 from email.mime.message import MIMEMessage
 from email.mime.text import MIMEText
 from email.utils import formatdate, make_msgid
@@ -216,7 +217,9 @@ class HoldChain(TerminalChainBase):
             # administrators are expecting.
             with _.using(mlist.preferred_language.code):
                 language = mlist.preferred_language
-                charset = language.charset
+                charset = Charset(language.charset)
+                charset.header_encoding = SHORTEST
+                charset.body_encoding = QP
                 substitutions['subject'] = original_subject
                 # We need to regenerate or re-translate a few values in the
                 # substitution dictionary.
@@ -239,7 +242,7 @@ discard the held message.  Do this if the message is spam.  If you reply to
 this message and include an Approved: header with the list password in it, the
 message will be approved for posting to the list.  The Approved: header can
 also appear in the first line of the body of the reply.""")),
-                                _charset=language.charset)
+                                _charset=charset)
                 dmsg['Subject'] = 'confirm ' + token
                 dmsg['From'] = mlist.request_address
                 dmsg['Date'] = formatdate(localtime=True)
