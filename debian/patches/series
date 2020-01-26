@@ -3,3 +3,4 @@
 0003-decode-message-subject.patch
 0004-call-send_rejection-correctly.patch
 0005-use-utf-8.patch
+0006-requires-approval-utf8-quopri.patch
