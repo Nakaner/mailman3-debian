@@ -27,6 +27,7 @@ import email
 import email.message
 import email.utils
 
+from email.charset import Charset, SHORTEST, QP
 from email.header import Header
 from email.mime.multipart import MIMEMultipart
 from mailman.config import config
@@ -134,10 +135,14 @@ class UserNotification(Message):
 
     def __init__(self, recipients, sender, subject=None, text=None, lang=None):
         Message.__init__(self)
-        charset = (lang.charset if lang is not None else 'us-ascii')
+        cs = (lang.charset if lang is not None else 'utf-8')
+        charset = Charset(cs)
+        charset.header_encoding = SHORTEST
+        # Body encoding cannot be the shortest of quoted-printable or base64.
+        charset.body_encoding = QP
         subject = ('(no subject)' if subject is None else subject)
         if text is not None:
-            self.set_payload(text.encode(charset, errors='replace'), charset)
+            self.set_payload(text.encode(charset.input_charset, errors='replace'), charset)
         self['Subject'] = Header(
             subject, charset, header_name='Subject', errors='replace')
         self['From'] = sender
