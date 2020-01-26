@@ -32,7 +32,7 @@ from mailman.interfaces.messages import IMessageStore
 from mailman.interfaces.requests import IListRequests, RequestType
 from mailman.interfaces.template import ITemplateLoader
 from mailman.utilities.datetime import now
-from mailman.utilities.string import expand, wrap
+from mailman.utilities.string import expand, oneline, wrap
 from public import public
 from zope.component import getUtility
 
@@ -99,7 +99,8 @@ def handle_message(mlist, id, action, comment=None, forward=None):
     rejection = None
     message_id = msgdata['_mod_message_id']
     sender = msgdata['_mod_sender']
-    subject = msgdata['_mod_subject']
+    # Subject is stored encoded in the database as we received it, decode it before use.
+    subject = oneline(msgdata['_mod_subject'], in_unicode=True)
     keep = False
     if action in (Action.defer, Action.hold):
         # Nothing to do, but preserve the message for later.
